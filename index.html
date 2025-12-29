@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Supplier Invoice Upload</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f6f8;
+      padding: 40px;
+    }
+    .container {
+      max-width: 520px;
+      background: #ffffff;
+      padding: 30px;
+      margin: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    h2 {
+      margin-bottom: 20px;
+      color: #1f2937;
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 600;
+      color: #374151;
+    }
+    input, button {
+      width: 100%;
+      margin-top: 6px;
+      padding: 10px;
+      font-size: 14px;
+      border-radius: 5px;
+      border: 1px solid #d1d5db;
+    }
+    input[type="file"] {
+      padding: 6px;
+    }
+    button {
+      background: #2563eb;
+      color: #ffffff;
+      font-weight: 600;
+      margin-top: 25px;
+      cursor: pointer;
+      border: none;
+    }
+    button:hover {
+      background: #1d4ed8;
+    }
+    .note {
+      margin-top: 15px;
+      font-size: 12px;
+      color: #6b7280;
+      text-align: center;
+    }
+    .success, .error {
+      margin-top: 15px;
+      font-size: 14px;
+      text-align: center;
+    }
+    .success { color: green; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Supplier Invoice Upload</h2>
+
+    <form id="invoiceForm" enctype="multipart/form-data">
+      <label>Purchase Order Number *</label>
+      <input type="text" name="po_number" required />
+
+      <label>Supplier Bill Number *</label>
+      <input type="text" name="bill_number" required />
+
+      <label>Bill Date *</label>
+      <input type="date" name="bill_date" required />
+
+      <label>Invoice PDF *</label>
+      <input type="file" name="bill_file" accept="application/pdf" required />
+
+      <button type="submit">Upload Invoice</button>
+    </form>
+
+    <div id="response"></div>
+
+    <div class="note">
+      Please upload only final GST invoice in PDF format.
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('invoiceForm');
+    const responseDiv = document.getElementById('response');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      responseDiv.innerHTML = '';
+      const formData = new FormData(form);
+
+      try {
+        const res = await fetch('https://YOUR-N8N-DOMAIN/webhook/supplier-bill-upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          responseDiv.innerHTML = `<div class="success">Invoice uploaded successfully. Bill No: ${data.bill_number}</div>`;
+          form.reset();
+        } else {
+          responseDiv.innerHTML = `<div class="error">${data.message || 'Upload failed'}</div>`;
+        }
+      } catch (error) {
+        responseDiv.innerHTML = '<div class="error">Server error. Please try again later.</div>';
+      }
+    });
+  </script>
+
+</body>
+</html>
